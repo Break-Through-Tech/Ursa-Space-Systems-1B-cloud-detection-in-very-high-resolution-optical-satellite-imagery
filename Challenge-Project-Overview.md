@@ -5,6 +5,8 @@
 **Challenge Advisor:** Nicholas LaVigne, nicholas.lavigne@ursaspace.com  
 **Program:** Break Through Tech AI Studio - Fall 2026  
 
+test
+
 ---
 
 ## 🏢 About Ursa Space Systems
