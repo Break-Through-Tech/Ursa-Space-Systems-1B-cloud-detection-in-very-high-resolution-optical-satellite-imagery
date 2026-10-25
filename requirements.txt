@@ -1,1 +1,6 @@
-
+rasterio
+leafmap
+pystac-client
+pystac
+matplotlib
+numpy
