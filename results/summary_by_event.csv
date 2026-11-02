@@ -1,0 +1,10 @@
+method,event,precision,recall,f1
+rgb,Cyclone-Chido-Dec15,0.9994,0.5402,0.673
+rgb,Hurricane-Maria-PuertoRico-Oct-2017,0.5521,0.5877,0.5051
+rgb,HurricaneHelene-Oct24,0.7511,0.4029,0.5004
+rgb,HurricaneMilton-Oct24,0.6542,0.423,0.4407
+rgb,cyclone-emnati22,0.8079,0.551,0.6253
+rgb,ghana-explosion22,0.8082,0.6351,0.6953
+rgb,southafrica-flooding22,0.7174,0.2569,0.3326
+rgb,tonga-volcano21,0.8615,0.5311,0.6231
+rgb,ALL,0.8018,0.5215,0.5936
