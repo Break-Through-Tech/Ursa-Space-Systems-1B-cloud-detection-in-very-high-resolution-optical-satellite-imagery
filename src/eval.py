@@ -1,6 +1,7 @@
 """Shared evaluation for the Ursa cloud-detection baselines."""
 import numpy as np
 
+
 def evaluate(pred_mask, true_mask, valid=None):
     """Compare a predicted cloud mask to the ground truth.
 
