@@ -47,3 +47,49 @@ Label rules (proposed — confirm in #8):
 from src.data import load_belize_patch
 rgb, valid = load_belize_patch()      # (1024,1024,3) uint8, (1024,1024) bool
 ```
+
+---
+
+# Milestone 3 — Frozen evaluation set (Task #1 / issue #24)
+
+The M3 head-to-head (classical baselines vs. pretrained models) requires **every method
+to be scored on identical tiles**. That tile set is now **frozen** and made explicit here,
+so classical and pretrained runs reference the same locked list instead of re-deriving it.
+
+## Scene list — `labeled_scenes.csv`
+
+**548 scenes** across 8 Maxar Open Data events (columns
+`event,item_id,cloud_percent,visual_href,mask_href`, written by `scripts/scene_finder.py`).
+This file is the frozen source of truth — do not edit it without re-freezing the tile list.
+
+## Tile manifest — `eval_tiles.csv` (the locked evaluation set)
+
+Materialized by `scripts/freeze_tiles.py`, which reuses `src/tiling.py:iter_tiles()` — the
+same tiling the batch runner (`scripts/run_baselines.py`) iterates — so the manifest matches
+exactly what every method scores at runtime. One row per scorable tile:
+
+| column | meaning |
+|---|---|
+| `event`, `item_id` | the scene (keys into `labeled_scenes.csv`) |
+| `tile_row`, `tile_col` | tile index in the scene's grid |
+| `r0`, `c0` | tile's pixel offset in the (mask-grid) scene |
+| `height`, `width` | tile size (edge tiles are smaller, not padded) |
+| `n_valid` | non-nodata mask pixels in the tile (what `evaluate()` scores over) |
+| `tile` | tile size parameter (`512`) |
+
+**Frozen set:** `tile=512`, `skip_empty=True` (all-nodata tiles dropped) →
+**538 scenes kept, 10 skipped, 10,072 tiles.**
+
+The 10 skipped scenes are the single-band capture `10200100C3078400`
+(`southafrica-flooding22`): their visual COG has < 3 bands, so `read_scene()` fails for
+*every* method — they are excluded here so the manifest is exactly the tiles each method can
+actually score. (Other, 3-band `southafrica-flooding22` captures remain in the set.)
+
+### Regenerate
+
+```bash
+python scripts/freeze_tiles.py          # → data/eval_tiles.csv (deterministic)
+```
+
+Lightweight: reads only each scene's decimated cloud mask plus the visual COG's header
+(band count) — it never downloads a full-resolution visual.
