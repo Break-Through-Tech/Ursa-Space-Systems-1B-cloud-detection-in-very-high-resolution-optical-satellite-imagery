@@ -4,7 +4,7 @@ The three baselines expose different ``detect`` signatures:
 
     rgb : detect(image, b, s)
     dcp : detect(image, t=0.6, **kwargs)
-    hot : detect(image, ...)            # issue #17, not yet implemented
+    hot : detect(image, threshold=-0.08)    # issue #17
 
 The batch runner only wants one uniform interface: ``detect_fn(image) -> uint8 mask``
 (1 = cloud). This module wraps each baseline into that shape, baking the tuned
@@ -27,8 +27,9 @@ _RGB_SWEEP = os.path.join(_ROOT, "results", "rgb_sweep.csv")
 # match the defaults in scripts/preview_rgb_threshold.py.
 _DEFAULT_B, _DEFAULT_S = 0.5, 0.2
 
-# Methods the runner can resolve today. HOT joins once issue #17 lands a detect().
-METHODS = ("rgb", "dcp")
+# Methods the runner can resolve. Each is imported lazily in get_detector() so the
+# registry still works when a method's module isn't on the branch yet.
+METHODS = ("rgb", "dcp", "hot")
 
 
 def best_rgb_thresholds(sweep_csv: str = _RGB_SWEEP):
@@ -50,8 +51,9 @@ def best_rgb_thresholds(sweep_csv: str = _RGB_SWEEP):
 def get_detector(name: str):
     """Return a ``detect_fn(image) -> uint8 mask`` for the named baseline.
 
-    ``dcp`` is imported lazily so the registry still works for RGB even when
-    ``src/methods/dcp_detect.py`` isn't on the branch yet (it arrives with PR #19).
+    ``dcp`` and ``hot`` are imported lazily so the registry still works for RGB even
+    when ``src/methods/dcp_detect.py`` (PR #19) or ``src/methods/hot_detect.py``
+    (issue #17) isn't on the branch yet.
     """
     key = name.lower()
     if key == "rgb":
@@ -63,8 +65,8 @@ def get_detector(name: str):
         from src.methods.dcp_detect import detect  # lazy: see docstring
         return detect
     if key == "hot":
-        raise NotImplementedError(
-            "HOT detector (issue #17) is not implemented yet; register it here once "
-            "src/methods/hot_detect.py lands with a detect(image) interface."
-        )
+        from src.methods.hot_detect import detect  # lazy: see docstring
+        fn = functools.partial(detect, threshold=-0.08)  # tuned for the full run (#29)
+        fn.params = {"threshold": -0.08}  # for logging which threshold was used
+        return fn
     raise ValueError(f"unknown method {name!r}; known methods: {METHODS}")
