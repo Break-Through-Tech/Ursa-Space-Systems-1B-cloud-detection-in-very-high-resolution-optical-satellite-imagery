@@ -65,8 +65,8 @@ def get_detector(name: str):
         from src.methods.dcp_detect import detect  # lazy: see docstring
         return detect
     if key == "hot":
-        from src.methods.hot_detect import detect  # lazy: see docstring
-        fn = functools.partial(detect, threshold=-0.08)  # tuned for the full run (#29)
+        from src.methods.hot_detect import detect_hot  # lazy: see docstring
+        fn = functools.partial(detect_hot, threshold=-0.08)  # tuned for the full run (#29)
         fn.params = {"threshold": -0.08}  # for logging which threshold was used
         return fn
     if key == "sam":
