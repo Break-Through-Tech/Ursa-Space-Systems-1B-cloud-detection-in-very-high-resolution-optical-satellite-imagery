@@ -29,7 +29,7 @@ _DEFAULT_B, _DEFAULT_S = 0.5, 0.2
 
 # Methods the runner can resolve. Each is imported lazily in get_detector() so the
 # registry still works when a method's module isn't on the branch yet.
-METHODS = ("rgb", "dcp", "hot")
+METHODS = ("rgb", "dcp", "hot", "sam")
 
 
 def best_rgb_thresholds(sweep_csv: str = _RGB_SWEEP):
@@ -68,5 +68,10 @@ def get_detector(name: str):
         from src.methods.hot_detect import detect  # lazy: see docstring
         fn = functools.partial(detect, threshold=-0.08)  # tuned for the full run (#29)
         fn.params = {"threshold": -0.08}  # for logging which threshold was used
+        return fn
+    if key == "sam":
+        from src.methods.sam_detect import detect  # lazy: needs SAM_CHECKPOINT at run time
+        fn = functools.partial(detect, b=0.5, s=0.2)  # same cue as the RGB baseline
+        fn.params = {"b": 0.5, "s": 0.2}
         return fn
     raise ValueError(f"unknown method {name!r}; known methods: {METHODS}")
