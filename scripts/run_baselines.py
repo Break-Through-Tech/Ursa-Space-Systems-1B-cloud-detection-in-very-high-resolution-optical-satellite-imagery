@@ -148,7 +148,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--method", default="rgb",
-                    help="rgb | dcp | hot | omcm | all  (default: rgb)")
+                    help="rgb | dcp | hot | omcm | sam | all  (default: rgb)")
     ap.add_argument("--tile", type=int, default=512, help="tile size in mask pixels")
     ap.add_argument("--limit", type=int, default=None,
                     help="only run the first N scenes (quick smoke test)")

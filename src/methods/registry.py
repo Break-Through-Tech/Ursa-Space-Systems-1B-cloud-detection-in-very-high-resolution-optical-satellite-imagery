@@ -6,6 +6,7 @@ The three baselines expose different ``detect`` signatures:
     dcp : detect(image, t=0.6, **kwargs)
     hot : detect(image, threshold=-0.08)    # issue #17
     omcm: detect_ms(ms_path, out_hw)        # issue #25, scene-level (needs the -ms GeoTIFF)
+    sam : detect(image, b, s)               # issue #26, zero-shot (needs SAM_CHECKPOINT)
 
 The batch runner only wants one uniform interface: ``detect_fn(image) -> uint8 mask``
 (1 = cloud). This module wraps each baseline into that shape, baking the tuned
@@ -30,7 +31,7 @@ _DEFAULT_B, _DEFAULT_S = 0.5, 0.2
 
 # Methods the runner can resolve. Each is imported lazily in get_detector() so the
 # registry still works when a method's module isn't on the branch yet.
-METHODS = ("rgb", "dcp", "hot", "omcm")
+METHODS = ("rgb", "dcp", "hot", "omcm", "sam")
 
 
 def best_rgb_thresholds(sweep_csv: str = _RGB_SWEEP):
@@ -79,5 +80,10 @@ def get_detector(name: str):
         fn.scene_level = True
         fn.detect_scene = detect_ms
         fn.params = {"bands": "R=5,G=3,NIR=8", "res_m": 10, "cloud": "thick+thin"}
+        return fn
+    if key == "sam":
+        from src.methods.sam_detect import detect  # lazy: needs SAM_CHECKPOINT at run time
+        fn = functools.partial(detect, b=0.5, s=0.2)  # same cue as the RGB baseline
+        fn.params = {"b": 0.5, "s": 0.2}
         return fn
     raise ValueError(f"unknown method {name!r}; known methods: {METHODS}")
