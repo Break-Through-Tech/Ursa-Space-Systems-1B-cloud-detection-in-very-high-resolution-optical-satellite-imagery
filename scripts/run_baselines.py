@@ -51,11 +51,27 @@ def run_scene(row, detect_fn, tile, export_gis, method):
     error) is left to the caller to catch so the batch keeps going.
     """
     image, mask, profile = read_scene(row["visual_href"], row["mask_href"])
+
+    # Scene-level methods (OMCM, #25) predict the whole scene once from the -ms
+    # GeoTIFF on the mask grid; each tile then takes its slice of that prediction.
+    scene_pred = None
+    if getattr(detect_fn, "scene_level", False):
+        # labeled_scenes.csv has no ms_href column; Maxar ARD keeps the -ms
+        # GeoTIFF next to the visual one, so swap the suffix.
+        ms_href = row.get("ms_href")
+        if ms_href is None or pd.isna(ms_href):
+            ms_href = str(row["visual_href"]).replace("-visual.tif", "-ms.tif")
+        scene_pred = detect_fn.detect_scene(ms_href, out_hw=mask.shape)
+
     full_pred = np.zeros(mask.shape, dtype=np.uint8) if export_gis else None
     rows = []
 
     for tile_row, tile_col, r0, c0, img_tile, mask_tile in iter_tiles(image, mask, tile):
-        pred = detect_fn(img_tile)
+        if scene_pred is not None:
+            h, w = mask_tile.shape
+            pred = scene_pred[r0:r0 + h, c0:c0 + w]
+        else:
+            pred = detect_fn(img_tile)
         valid = mask_tile != 0
         scores = evaluate(pred, mask_tile == 2, valid)
         cloud_frac = float(pred[valid].mean()) if valid.any() else 0.0
@@ -132,7 +148,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--method", default="rgb",
-                    help="rgb | dcp | all  (default: rgb)")
+                    help="rgb | dcp | hot | omcm | all  (default: rgb)")
     ap.add_argument("--tile", type=int, default=512, help="tile size in mask pixels")
     ap.add_argument("--limit", type=int, default=None,
                     help="only run the first N scenes (quick smoke test)")
