@@ -1,6 +1,9 @@
 __pycache__/
 *.pyc
 
+# Local virtualenv (Task #4 benchmark deps)
+.venv/
+
 # Heavy batch-pipeline outputs (issue #18) — kept on Drive, not in git.
 # The small results/summary_by_event.csv is committed as the headline table.
 results/masks_gis/

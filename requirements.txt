@@ -4,3 +4,16 @@ pystac-client
 pystac
 matplotlib
 numpy
+pandas
+scipy
+
+# Pretrained-model extras (OMCM, SAM) — install separately; heavy / GPU-oriented.
+#   OmniCloudMask (omcm): needs the multispectral -ms products (Red/Green/NIR)
+#     pip install omnicloudmask
+#   SAM zero-shot (sam): needs a checkpoint + (ideally) a GPU
+#     pip install torch
+#     pip install git+https://github.com/facebookresearch/segment-anything
+#     wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+#     export SAM_CHECKPOINT=/path/to/sam_vit_b_01ec64.pth
+#     export SAM_MODEL_TYPE=vit_b          # smallest; vit_l / vit_h are larger/slower
+#     export SAM_POINTS_PER_SIDE=16        # coarser grid = faster on CPU
